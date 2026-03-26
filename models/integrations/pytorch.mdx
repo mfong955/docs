@@ -14,7 +14,7 @@ This tutorial walks through a complete PyTorch training pipeline with W&B integr
 
 ## What this notebook covers
 
-The following overview snippet shows the core W&B integration points in a PyTorch pipeline. The rest of this tutorial breaks down each step in detail.
+The following diagram shows an example on what the W&B dashboard shows after successfully integrating W&B with PyTorch.
 
 <Note>
 This tutorial uses a CNN trained on MNIST as an example. The W&B integration steps apply to any PyTorch project.
@@ -23,6 +23,8 @@ This tutorial uses a CNN trained on MNIST as an example. The W&B integration ste
 <Frame>
     <img src="/images/tutorials/pytorch.png" alt="Diagram showing the PyTorch integration in the W&B workspace"  />
 </Frame>
+
+The following pseudocode shows the core W&B integration points in a PyTorch pipeline. The rest of this tutorial breaks down each step in detail.
 
 ```python
 # Import the library
@@ -104,7 +106,7 @@ import wandb
 wandb.login()
 ```
 
-## Define the experiment and pipeline
+## Configure the experiment
 
 ### Track metadata and hyperparameters with `wandb.init`
 
@@ -122,6 +124,8 @@ config = dict(
     dataset="MNIST",
     architecture="CNN")
 ```
+
+### Define the training pipeline
 
 Define the overall pipeline. A typical model training pipeline consists of three stages:
 
@@ -182,7 +186,7 @@ def make(config):
     return model, train_loader, test_loader, criterion, optimizer
 ```
 
-### Define the data loading and model
+## Build the model and data loaders
 
 Define the data loading and model architecture. This section is standard PyTorch code with no W&B-specific changes.
 
@@ -236,11 +240,12 @@ class ConvNet(nn.Module):
         return out
 ```
 
-### Define training logic
+## Train and track metrics
 
 The `train` function implements the training loop. Two W&B functions are used here: `wandb.watch` and `wandb.log`.
 
-### Track gradients with `wandb.watch()` and everything else with `wandb.log()`
+- `wandb.watch()` tracks gradients 
+- `wandb.log()` log metrics
 
 `wandb.watch` logs the gradients and the parameters of your model every `log_freq` steps of training. Call it before you start training.
 
@@ -301,13 +306,11 @@ def train_log(loss, example_ct, epoch):
     print(f"Loss after {str(example_ct).zfill(5)} examples: {loss:.3f}")
 ```
 
-### Define testing logic
+## Test and save the model (Optional)
 
-After training completes, evaluate the model on the test set and log the accuracy to W&B.
+After training completes, evaluate the model on the test set and log the accuracy to W&B. 
 
-### (Optional) Call `wandb.save()`
-
-Save the model's architecture and final parameters to disk. For maximum compatibility, export the model in the [Open Neural Network eXchange (ONNX) format](https://onnx.ai/).
+When ready, save the model with `wandb.save()`. This saves the model's architecture and final parameters to disk. For maximum compatibility, export the model in the [Open Neural Network eXchange (ONNX) format](https://onnx.ai/).
 
 Passing that filename to `wandb.save()` ensures that the model parameters are saved to W&B's servers, so you can always trace which model file corresponds to which training run.
 
@@ -339,7 +342,7 @@ def test(model, test_loader):
     wandb.save("model.onnx")
 ```
 
-### Run training and watch your metrics live on wandb.ai
+## Run the pipeline
 
 Run the full pipeline. W&B provides links to the following pages:
 
@@ -360,7 +363,7 @@ Once the run finishes (that is, the `with wandb.init` block exits), a summary of
 model = model_pipeline(config)
 ```
 
-### Test hyperparameters with Sweeps
+## Next steps: hyperparameter sweeps
 
 The previous example used a single set of hyperparameters. An important part of most ML workflows is iterating over a number of hyperparameters.
 
@@ -376,8 +379,10 @@ To run a hyperparameter sweep with W&B, follow these three steps:
 3. **Run the sweep agent:** 
 `wandb.agent(sweep_id, function=train)`
 
+The following image shows an example W&B Sweeps dashboard.
+
 <Frame>
-    <img src="/images/tutorials/pytorch-2.png" alt="Screenshot of a W&B dashboard showing training metrics from a PyTorch sweep"  />
+    <img src="/images/tutorials/pytorch-2.png" alt="Screenshot of a W&B dashboard showing training metrics from a PyTorch sweep."  />
 </Frame>
 
 
